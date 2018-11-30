@@ -147,6 +147,12 @@ def main(argv=None):
         'name', nargs='?', help='the license name to show')
     parser_license.set_defaults(func=print_license)
 
+    parser_add = subparsers.add_parser('add', help="add component")
+    parser_add.add_argument(
+        'node_module', help='node module available via npm')
+    parser_add.set_defaults(func=print_add)
+
+
     if len(argv) == 1:
         parser.error("Please specify an option.")
     else:
@@ -300,6 +306,20 @@ def create(args):
 
     _show_mapper_warnings()
 
+def add(args):
+    npm2deb = get_npm2deb_instance(args)
+    print(npm2deb)
+    try:
+        saved_path = _os.getcwd()
+        # _utils.create_dir(npm2deb.name)
+        # _utils.change_dir(npm2deb.name)
+        # npm2deb.start()
+        # _utils.change_dir(npm2deb.debian_name)
+        # npm2deb.initiate_build(saved_path)
+
+    except OSError as os_error:
+        print(str(os_error))
+        exit(1)
 
 def get_npm2deb_instance(args):
     if not args.node_module or len(args.node_module) is 0:
