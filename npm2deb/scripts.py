@@ -149,8 +149,9 @@ def main(argv=None):
 
     parser_add = subparsers.add_parser('add', help="add component")
     parser_add.add_argument(
-        'node_module', help='node module available via npm')
-    parser_add.set_defaults(func=print_add)
+        'component', help='node modules added via npm')
+    parser_add.set_defaults(func=add)
+
 
 
     if len(argv) == 1:
@@ -162,6 +163,21 @@ def main(argv=None):
 
         args.func(args)
 
+        
+def add(args):
+    try:
+        saved_path = _os.getcwd()
+        _os.chdir("./debian")
+        _os.path.isfile("changelog")
+        if not _os.path.isdir("./component"):
+            _os.makedirs("component")
+        if not _os.path.isdir("component/"+args.component):
+            _os.makedirs("component/"+args.component)
+      
+    except OSError as os_error:
+        print(str(os_error))
+        print("Please go to valid debian folder")
+        exit(1)
 
 def search_for_module(args):
     _helper.DO_PRINT = True
