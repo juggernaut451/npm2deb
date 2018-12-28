@@ -6,6 +6,7 @@ from urllib.request import urlopen as _urlopen
 from subprocess import getstatusoutput as _getstatusoutput
 from subprocess import call as _call
 import os as _os
+import shutil
 import re as _re
 import tarfile
 
@@ -18,7 +19,8 @@ STANDARDS_VERSION = '4.1.1'
 
 
 class Npm2Deb(object):
-    def __init__(self, module_name=None, args={}):
+    def __init__(self, module_name=None, args={}, addflag=False):
+    
         if not module_name and 'node_module' not in args:
             raise ValueError('You must specify a module_name')
         if module_name:
@@ -37,6 +39,7 @@ class Npm2Deb(object):
         self.debian_standards = STANDARDS_VERSION
         self.debian_debhelper = DEBHELPER
         self.noclean = False
+        self.addflag = addflag
         self.upstream_watch = False
         if args:
             if 'upstream_license' in args and args['upstream_license']:
@@ -86,6 +89,28 @@ class Npm2Deb(object):
             self.clean()
         utils.change_dir('..')
         self.create_itp_bug()
+
+    def add(self):
+        self.download()
+        utils.change_dir(self.debian_name)
+        self.create_base_debian()
+        #self.create_tests()
+        #self.create_rules()
+        #self.create_changelog()
+        self.create_copyright()
+        self.create_control()
+        #self.create_docs()
+        self.create_install()
+        # self.create_links()
+        # self.create_dirs()
+        # self.create_examples()
+        self.create_watch()
+        self.create_version()
+        # # self.create_manpages()
+        if not self.noclean:
+            self.clean()
+        utils.change_dir('..')
+        #self.create_itp_bug()
 
     def initiate_build(self, saved_path):
         """
@@ -167,6 +192,9 @@ and may not include tests.\n""")
                                                        self.upstream_version))
         return info
 
+    def create_version(self):
+        utils.create_debian_file('version', self.upstream_version)
+    
     def create_itp_bug(self):
         utils.debug(1, "creating wnpp bug template")
         utils.create_file('%s_itp.mail' % self.debian_name, self.get_ITP())
@@ -179,6 +207,12 @@ and may not include tests.\n""")
                     _rmtree(filename)
                 else:
                     _os.remove(filename)
+        if self.addflag:
+            files = _os.listdir('debian')
+            for f in files:
+                shutil.move('debian/'+f, './')
+            shutil.rmtree('debian') 
+            
 
     def create_manpages(self):
         if not 'man' in self.json:
@@ -243,8 +277,10 @@ and may not include tests.\n""")
         libs.remove('debian')
 
         for filename in libs:
+            print(filename)
             if not utils.is_ignored(filename):
                 content += "%s %s/\n" % (filename, self.debian_dest)
+        
         utils.create_debian_file('install', content)
 
     def create_docs(self):
@@ -322,25 +358,28 @@ and may not include tests.\n""")
                                      "\tdh_installchangelogs -k %s\n" % filename
                 break
         content = utils.get_template('rules') % args
+        
         utils.create_debian_file("rules", content)
         _os.system('chmod +x debian/rules')
 
     def create_tests(self):
-        utils.create_dir("debian/tests")
         args = {}
         args['name'] = self.name
         args['debian_name'] = self.debian_name
         control = utils.get_template('tests/control') % args
-        utils.create_debian_file("tests/control", control)
         require = utils.get_template("tests/require") % args
+        utils.create_dir("debian/tests")
+        utils.create_debian_file("tests/control", control)
         utils.create_debian_file("tests/require", require)
 
+       
     def create_base_debian(self):
         utils.debug(1, "creating debian files")
         utils.create_dir("debian")
-        utils.create_dir("debian/source")
-        utils.create_debian_file("source/format", "3.0 (quilt)\n")
-        utils.create_debian_file("compat", self.debian_debhelper)
+        if not self.addflag:
+           utils.create_dir("debian/source")
+           utils.create_debian_file("source/format", "3.0 (quilt)\n")
+           utils.create_debian_file("compat", self.debian_debhelper)
 
     def read_package_info(self):
         data = None

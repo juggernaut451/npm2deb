@@ -13,8 +13,10 @@ import npm2deb as _
 def main(argv=None):
     # verify utf8 support
     _utils.verify_python3_env()
+
     if not argv:
         argv = _sys.argv
+    
     parser = _ArgumentParser(prog='npm2deb')
     parser.add_argument('-D', '--debug', type=int, help='set debug level')
     parser.add_argument(
@@ -57,6 +59,7 @@ def main(argv=None):
     parser_create.add_argument(
         'node_module', help='node module available via npm')
     parser_create.set_defaults(func=create)
+    
 
     parser_view = subparsers.add_parser(
         'view', help="a summary view of a node module")
@@ -148,8 +151,41 @@ def main(argv=None):
     parser_license.set_defaults(func=print_license)
 
     parser_add = subparsers.add_parser('add', help="add component")
+
     parser_add.add_argument(
-        'component', help='node modules added via npm')
+        '-n',
+        '--noclean',
+        action="store_true",
+        default=False,
+        help='do not remove files downloaded with npm')
+    parser_add.add_argument(
+        '--debhelper',
+        default=_.DEBHELPER,
+        help='specify debhelper version [default: %(default)s]')
+    parser_add.add_argument(
+        '--standards-version',
+        default=_utils.get_latest_debian_standards_version(),
+        help='set standards-version [default: %(default)s]')
+    parser_add.add_argument(
+        '--upstream-author',
+        default=None,
+        help='set upstream author if not automatically recognized')
+    parser_add.add_argument(
+        '--upstream-homepage',
+        default=None,
+        help='set upstream homepage if not automatically recognized')
+    parser_add.add_argument(
+        '--upstream-license',
+        default=None,
+        help='set upstream license if not automatically recognized')
+    parser_add.add_argument(
+        '--debian-license',
+        default=None,
+        help='license used for debian files [default: the same of upstream]')
+    parser_add.add_argument(
+        'node_module', 
+        help='node module available via npm')
+    
     parser_add.set_defaults(func=add)
 
 
@@ -165,14 +201,17 @@ def main(argv=None):
 
         
 def add(args):
+    npm2deb = get_npm2deb_instance(args, addflag=True)
     try:
         saved_path = _os.getcwd()
-        _os.chdir("./debian")
+        _utils.change_dir("debian")
         _os.path.isfile("changelog")
-        if not _os.path.isdir("./component"):
-            _os.makedirs("component")
-        if not _os.path.isdir("component/"+args.component):
-            _os.makedirs("component/"+args.component)
+        if not _os.path.isdir("component"):
+            _utils.create_dir("component")
+        
+        _utils.change_dir("component")
+        npm2deb.add()
+
       
     except OSError as os_error:
         print(str(os_error))
@@ -322,7 +361,6 @@ def create(args):
 
     _show_mapper_warnings()
 
-def add(args):
     npm2deb = get_npm2deb_instance(args)
     print(npm2deb)
     try:
@@ -337,12 +375,12 @@ def add(args):
         print(str(os_error))
         exit(1)
 
-def get_npm2deb_instance(args):
+def get_npm2deb_instance(args, addflag=False):
     if not args.node_module or len(args.node_module) is 0:
         print('please specify a node_module.')
         exit(1)
     try:
-        return _Npm2Deb(args=vars(args))
+        return _Npm2Deb(args=vars(args), addflag=addflag)
     except ValueError as value_error:
         print(value_error)
         exit(1)
