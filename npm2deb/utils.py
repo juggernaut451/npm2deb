@@ -54,6 +54,10 @@ def get_template(filename):
         result = _templates.COPYRIGHT
     elif filename == 'rules':
         result = _templates.RULES
+    elif filename == 'components/install':
+        result = _templates.components_install
+    elif filename == 'components/test':
+        result = _templates.components_test
     elif filename == 'wnpp':
         result = _templates.WNPP
     elif filename == 'tests/control':

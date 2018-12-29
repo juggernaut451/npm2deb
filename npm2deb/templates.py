@@ -5,6 +5,48 @@ CHANGELOG = """%(debian_name)s (%(version)s-1) UNRELEASED; urgency=low
  -- %(debian_author)s  %(date)s
 """
 
+components_test = """
+#!/bin/sh
+
+# overrides default from /usr/share/pkg-components/build_stages/
+"""
+
+components_install = """ #!/bin/sh
+
+# overrides default from /usr/share/pkg-components/build_stages/
+set -e
+SDIR=debian/components/${DH_COMPONENT}
+TDIR=COMPONENTS/${DH_COMPONENT}
+DESTDIR=debian/
+
+if [ -z ${PACKAGE} ]
+then
+	echo PACKAGE not set
+	exit 1
+fi
+
+if [ -z ${DH_COMPONENT} ]
+then
+	echo DH_COMPONENT not set
+	exit 1
+fi
+
+cp ${SDIR}/* ${TDIR}/debian/
+
+cd ${TDIR}
+
+if [ -z debian/install ]
+then
+	echo ${SDIR}/debian/install expected with file names to install
+	exit 1
+fi
+mod_dir="../../node_modules/${DH_COMPONENT}"
+mkdir -p ${mod_dir}
+while read line; do
+  if [ ! -z ${line} ]; then cp -ar ${line} ${mod_dir}/; fi
+done < debian/install
+"""
+
 description_template = """ Write the short and long descriptions for the Debian package as
  explained in the Developer's Reference, §6.2.1 – §6.2.3.
  .

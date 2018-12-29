@@ -206,10 +206,10 @@ def add(args):
         saved_path = _os.getcwd()
         _utils.change_dir("debian")
         _os.path.isfile("changelog")
-        if not _os.path.isdir("component"):
-            _utils.create_dir("component")
+        # if not _os.path.isdir("component"):
+        #     _utils.create_dir("component")
         
-        _utils.change_dir("component")
+        # _utils.change_dir("component")
         npm2deb.add()
 
       

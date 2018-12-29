@@ -91,6 +91,13 @@ class Npm2Deb(object):
         self.create_itp_bug()
 
     def add(self):
+        if not _os.path.isdir("component"):
+            utils.create_dir("components")
+            template_install = utils.get_template('components/install')
+            utils.create_file('components/install', template_install)
+            template_test = utils.get_template('components/test')
+            utils.create_file('components/test', template_test)
+        utils.change_dir("components")
         self.download()
         utils.change_dir(self.debian_name)
         self.create_base_debian()
