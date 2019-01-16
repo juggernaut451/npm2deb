@@ -5,7 +5,7 @@ import codecs as _codecs
 import locale as _locale
 import os as _os
 from pathlib import Path as _Path
-
+from shutil import copyfile
 from npm2deb import templates as _templates
 
 DEBUG_LEVEL = 0
@@ -160,8 +160,15 @@ def get_npmjs_homepage(name):
     return 'https://npmjs.com/package/' + name
 
 
-# taken from https://github.com/pallets/click/blob/master/click/_unicodefun.py
+def create_component_copyright():
+    copyfile('./copyright', 'components/copyright.in')
 
+def update_copyright():
+    with open('../copyright.in', 'w') as outfile:
+        with open('./copyright') as infile:
+            outfile.write(infile.read())
+
+# taken from https://github.com/pallets/click/blob/master/click/_unicodefun.py
 
 def verify_python3_env():
     """Ensures that the environment is good for unicode on Python 3."""

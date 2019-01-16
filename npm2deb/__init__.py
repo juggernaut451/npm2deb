@@ -91,33 +91,27 @@ class Npm2Deb(object):
         self.create_itp_bug()
 
     def add(self):
-        if not _os.path.isdir("component"):
+        if not _os.path.isdir("components"):
             utils.create_dir("components")
             template_install = utils.get_template('components/install')
             utils.create_file('components/install', template_install)
             template_test = utils.get_template('components/test')
             utils.create_file('components/test', template_test)
+            utils.create_component_copyright()
         utils.change_dir("components")
         self.download()
         utils.change_dir(self.debian_name)
         self.create_base_debian()
-        #self.create_tests()
-        #self.create_rules()
-        #self.create_changelog()
         self.create_copyright()
         self.create_control()
-        #self.create_docs()
         self.create_install()
-        # self.create_links()
-        # self.create_dirs()
-        # self.create_examples()
         self.create_watch()
         self.create_version()
-        # # self.create_manpages()
         if not self.noclean:
             self.clean()
+        # utils.update_copyright()
         utils.change_dir('..')
-        #self.create_itp_bug()
+        
 
     def initiate_build(self, saved_path):
         """
